@@ -196,10 +196,6 @@ Building SpeakSync required overcoming several significant technical hurdles. He
 **Solution**: Implemented a multi-tiered approach:
 1. Fine-tuned recognition parameters based on input language
 2. Added an optional manual correction interface for critical misunderstandings
-3. Implemented an adaptive system that learns from corrections
-4. For specialized domains, added domain-specific vocabulary training
-
-This reduced error rates to below 8% even for heavily accented speech.
 
 ### Translation Service Limitations
 
@@ -233,7 +229,7 @@ This approach ensured a consistent experience across Chrome, Firefox, Safari, an
 - Implemented higher bitrate audio capture when available
 - Added sophisticated noise cancellation using WebRTC libraries
 - Used premium TTS voices with natural intonation
-- Added user controls for playback speed and voice selection
+- Added user controls for playback speed and voice selection(now removed due to conflicts with cloning)
 - Implemented audio normalization to maintain consistent volume
 
 These improvements significantly increased the subjective quality of synthesized speech based on user feedback.
@@ -256,7 +252,7 @@ During development, I explored several alternative architectural and technical a
 
 ### Server-Side Speech Processing
 
-**Approach**: Process all speech recognition on the server instead of in the browser.
+**Approach**: Process all speech recognition on the server with a whisper model instead of in the browser.
 
 **Pros**:
 - More consistent recognition quality
@@ -265,11 +261,10 @@ During development, I explored several alternative architectural and technical a
 
 **Cons**:
 - Higher latency due to audio streaming to server
-- Increased server costs
 - Privacy concerns with sending all audio to servers
-- Required constant internet connection
 
-**Decision**: Hybrid approach implemented instead, using client-side processing when possible and server-side as a fallback.
+
+**Decision**: Hybrid approach implemented instead, using client-side processing when possible and server-side as a fallback(still Deepgram).
 
 ### Native Mobile Apps vs. Web App
 
@@ -287,7 +282,7 @@ During development, I explored several alternative architectural and technical a
 - App store approval process
 - Higher maintenance burden
 
-**Decision**: Web app chosen for cross-platform compatibility, easier updates, and no installation barrier.
+**Decision**: Web app chosen for cross-platform compatibility, easier updates, and no installation barrier + I had more experience with web dev than app dev. 
 
 ### Peer-to-Peer Architecture
 
@@ -323,25 +318,6 @@ During development, I explored several alternative architectural and technical a
 
 **Decision**: Implemented a hybrid approach with configurable thresholds for when to use streaming vs. complete sentence translation.
 
-### Custom Speech Models
-
-**Approach**: Train custom speech recognition models for specific domains.
-
-**Pros**:
-- Better accuracy for specialized terminology
-- Lower error rates for specific accents
-- Could work offline for limited vocabulary
-
-**Cons**:
-- Significant development effort
-- Required large training datasets
-- Higher maintenance (regular retraining needed)
-- Storage and distribution challenges
-
-**Decision**: Used existing APIs with domain-specific vocabulary enhancements instead of full custom models.
-
-Each alternative had clear advantages but ultimately didn't align with the project's goals of creating a highly usable, low-latency solution that worked across platforms with minimal setup. The current architecture represents the best compromise between these competing considerations.
-
 ## Current Limitations & Future Improvements
 
 While SpeakSync successfully delivers on its core promise of enabling real-time cross-language communication, several limitations remain. These represent both challenges and opportunities for future development.
@@ -349,52 +325,14 @@ While SpeakSync successfully delivers on its core promise of enabling real-time 
 ### Known Performance Bottlenecks
 
 - **Cold Start Latency**: First-time translations experience ~1.5 second delays as connections and models initialize
-- **Scaling Limits**: Performance degrades with more than 25 simultaneous users in a room
-- **Mobile Battery Usage**: High CPU utilization on mobile devices leads to battery drain during extended sessions
-- **Memory Leaks**: Extended sessions (>3 hours) show gradual memory growth requiring page refresh
+- **Scaling Limits**: Performance degrades with more than 25 simultaneous users in a room(25 chosen arbitrarily. But more likely >10 people would lead to issues)
+- **Memory Leaks**: Extended sessions (>30 mins) show gradual memory growth requiring page refresh/new room creation
 
 Future improvements will focus on implementing more efficient resource management, better mobile optimizations, and improved session handling for long conversations.
-
-### Browser and Device Compatibility
-
-- **iOS Safari Limitations**: WebSpeech API restrictions on iOS Safari limit functionality
-- **Older Browser Support**: IE11 and older browsers have no support
-- **Mobile Performance**: Recognition quality on low-end mobile devices is suboptimal
-- **Background Operation**: Limited functionality when browser tabs are not in focus
-
-Plans include developing progressive enhancement strategies for older browsers and exploring iOS-specific workarounds using native app bridges.
-
-### Translation Accuracy Limitations
-
-- **Context Awareness**: Current translation services often miss contextual nuances
-- **Specialized Terminology**: Medical, legal, and technical terms often translate poorly
-- **Idiomatic Expressions**: Cultural idioms and slang phrases lose meaning in translation
-- **Sarcasm and Humor**: Tonal elements like sarcasm rarely translate correctly
-
-Future work will investigate specialized domain models, context-aware translation algorithms, and possibly custom fine-tuned models for specific use cases.
 
 ### Scaling Constraints
 
 - **WebSocket Limits**: Current infrastructure supports ~2000 concurrent connections
 - **API Rate Limits**: External service quotas restrict maximum active users
 - **Cost Scaling**: Translation API costs scale linearly with usage
-- **Database Performance**: Room history queries slow down with large conversation histories
-
-Planned improvements include implementing a more robust microservice architecture, negotiating higher API limits, and exploring custom model hosting for cost optimization at scale.
-
-### Future Enhancements
-
-Beyond addressing limitations, several exciting enhancements are planned:
-
-1. **Voice Preservation**: Technology to maintain the speaker's voice characteristics across translations
-2. **Contextual Translation Memory**: Learning from past conversations to improve future translations
-3. **Emotion Detection**: Conveying emotional tone across language barriers
-4. **Real-time Meeting Notes**: Automatically generating multilingual summaries of conversations
-5. **Offline Support**: Limited functionality without internet connection
-6. **AR Integration**: Overlay translations in augmented reality for in-person conversations
-
-The core architecture was designed with extensibility in mind, allowing these features to be added incrementally without fundamental redesigns.
-
----
-
-While SpeakSync represents a solid foundation for real-time translation, the most exciting possibilities lie ahead. The current implementation demonstrates the viability of the approach, but continued refinement will be necessary to create a truly seamless cross-language communication experience. 
+- **Database Performance**: Room history queries slow down with large conversation histories(this was when i tried adding supabase)
