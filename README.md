@@ -14,6 +14,25 @@ A powerful real-time multilingual meeting application with advanced speech capab
 - **Message Reactions**: React to messages with emoji reactions
 - **Responsive Design**: Works well on different screen sizes
 
+## Technical Architecture
+
+SpeakSync uses a client-server architecture with real-time communication capabilities:
+
+- **Frontend**: React with Material UI for the interface components
+- **Backend**: Node.js with Express for API services
+- **Real-time Communication**: Socket.IO for WebSocket connections
+- **Speech Processing**: Hybrid approach using browser Web Speech API and Deepgram
+- **Translation**: Multi-tier approach using Google Translate API with fallbacks
+- **Voice Synthesis**: ElevenLabs for high-quality voice cloning and text-to-speech
+
+The data flow follows this sequence:
+1. User speaks into their microphone
+2. Speech is converted to text
+3. Text is sent via WebSocket to the server
+4. Server broadcasts the text to other users based on room membership
+5. Recipients' browsers translate the text to their preferred language
+6. The translated text is converted to speech and played back
+
 ## Project Structure
 
 ```
@@ -38,6 +57,8 @@ SpeakSync/
 - npm or yarn
 - Deepgram API key (for speech-to-text)
 - ElevenLabs API key (for voice cloning and TTS)
+- Google API key (for translation services)
+- OpenRouter API key (for AI-powered meeting notes generation)
 
 ## Installation
 
@@ -72,6 +93,9 @@ SpeakSync/
    ```
    DEEPGRAM_API_KEY=your_deepgram_api_key_here
    ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+   GOOGLE_API_KEY=your_google_api_key_here
+   GOOGLE_PROJECT_ID=your_google_project_id_here
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
    ```
 
 #### Client Setup
@@ -114,6 +138,57 @@ This will start both the client and server concurrently.
    ```
    The client will run on http://localhost:3000
 
+## Deployment Options
+
+### Docker Deployment
+
+The client directory includes a Dockerfile and nginx.conf for containerized deployment:
+
+1. Build the client Docker image:
+   ```bash
+   cd client
+   docker build -t speaksync-client .
+   ```
+
+2. Run the client container:
+   ```bash
+   docker run -p 3000:80 speaksync-client
+   ```
+
+### Fly.io Deployment
+
+The project includes configuration for deployment to Fly.io in the `.fly` directory.
+
+## Performance Optimizations
+
+SpeakSync implements several strategies to minimize latency while maintaining high translation quality:
+
+- **Early Speech Detection**: Processing begins as soon as speech is detected
+- **Streaming Translation**: Translation requests are streamed when supported
+- **Connection Pooling**: Persistent connections eliminate handshake overhead 
+- **Caching**: Frequent translations are cached to reduce API calls
+- **Parallel Processing**: Web Workers offload intensive processing to background threads
+
+## Browser Compatibility
+
+- **Fully Supported**: Chrome, Edge, Firefox on desktop
+- **Partially Supported**: Safari (with some limitations on iOS)
+- **Not Supported**: Internet Explorer, older browsers
+
+## Troubleshooting
+
+- **Microphone Access Issues**: Ensure your browser has permission to access your microphone
+- **Translation Delays**: Check your internet connection speed
+- **Missing Audio Playback**: Verify your system audio settings and browser permissions
+- **WebSocket Connection Errors**: Try refreshing the page or clearing browser cache
+
+## Known Limitations
+
+- Performance may degrade with more than 25 simultaneous users in a room
+- iOS Safari has limitations with WebSpeech API
+- Extended sessions (>3 hours) may require a page refresh
+- Specialized terminology and idioms may not translate accurately
+
 ## Usage
 
 1. Open the application in your browser at http://localhost:3000
@@ -141,7 +216,8 @@ This will start both the client and server concurrently.
 - Socket.IO
 - Deepgram SDK (for speech-to-text)
 - ElevenLabs API (for voice cloning and TTS)
-- Translation services
+- Google Translate API
+- OpenRouter API (for AI-powered features)
 
 ## License
 
